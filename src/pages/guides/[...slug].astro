@@ -1,0 +1,91 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { SITE } from '../../data/site';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides');
+  return guides
+    .filter((g) => !g.data.draft)
+    .map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const url = `${SITE.url}/guides/${entry.id}`;
+const published = entry.data.publishDate;
+const updated = entry.data.updatedDate ?? published;
+
+function fmt(d: Date) {
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: entry.data.title,
+  description: entry.data.description,
+  url,
+  datePublished: published.toISOString(),
+  dateModified: updated.toISOString(),
+  author: {
+    '@type': 'Person',
+    name: SITE.founder.name,
+    url: SITE.founder.linkedin,
+    jobTitle: SITE.founder.jobTitle,
+    sameAs: SITE.founder.sameAs,
+  },
+  publisher: { '@id': `${SITE.url}/#organization` },
+  mainEntityOfPage: url,
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: `${SITE.url}/guides` },
+    { '@type': 'ListItem', position: 3, name: entry.data.title, item: url },
+  ],
+};
+---
+
+<Base
+  title={`${entry.data.title} — ${SITE.name}`}
+  description={entry.data.description}
+  schema={[articleSchema, breadcrumbSchema]}
+>
+  <article class="section">
+    <div class="container maxw-prose">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a> / <a href="/guides">Guides</a> / {entry.data.title}
+      </nav>
+
+      <h1>{entry.data.title}</h1>
+
+      <div class="byline">
+        <span class="id-dot" aria-hidden="true">{SITE.founder.name.charAt(0)}</span>
+        <div>
+          <a href={SITE.founder.linkedin} rel="author noopener" class="byname">{SITE.founder.name}</a>
+          <span class="bymeta">
+            Updated {fmt(updated)}
+            {entry.data.tags.length > 0 && <> &middot; {entry.data.tags.slice(0, 3).join(', ')}</>}
+          </span>
+        </div>
+      </div>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <div class="guide-foot">
+        <p class="bymeta" style="margin-bottom: 14px;">
+          Written by <a href={SITE.founder.linkedin} rel="author noopener">{SITE.founder.name}</a>.
+          {SITE.founder.bio}
+        </p>
+        <a class="btn btn-primary" href="/start">Start a project</a>
+        <a class="btn btn-ghost" href="/guides">More guides</a>
+      </div>
+    </div>
+  </article>
+</Base>

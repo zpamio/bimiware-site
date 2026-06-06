@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { SITE } from '../../data/site';
+
+const guides = (await getCollection('guides'))
+  .filter((g) => !g.data.draft)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+
+const title = `Guides — ${SITE.name}`;
+const description =
+  'Practical, source-backed guides to BIMI, certificates, and email authentication, from 400+ shipped logo projects.';
+
+function fmt(d: Date) {
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Base title={title} description={description}>
+  <section class="section">
+    <div class="container">
+      <div class="maxw-prose" style="margin-bottom: 40px;">
+        <p class="eyebrow">Guides</p>
+        <h1>The answers, written down.</h1>
+        <p class="lead" style="margin-top: 18px;">
+          The questions that come up on real BIMI and deliverability projects,
+          answered with sources and without the fluff.
+        </p>
+      </div>
+
+      {
+        guides.length === 0 ? (
+          <p class="muted">First guide is on the way.</p>
+        ) : (
+          <div class="grid grid-2">
+            {guides.map((g, i) => (
+              <a class="card reveal" style={`--d: ${i * 70}ms;`} href={`/guides/${g.id}/`}>
+                <div class="tier">{fmt(g.data.publishDate)}</div>
+                <h3>{g.data.title}</h3>
+                <p style="flex: 1;">{g.data.description}</p>
+                <div class="price"><span class="arrow">Read &rarr;</span></div>
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Base>

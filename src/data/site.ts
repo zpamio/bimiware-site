@@ -21,17 +21,21 @@ export const SITE = {
   founder: {
     name: 'Burak', // TODO: add full name for the E-E-A-T / author signal
     jobTitle: 'Fractional CRM & Lifecycle Architect, Email Deliverability',
+    // Short author bio used on guide bylines. Rewrite in your own voice.
+    bio: 'Email deliverability and lifecycle consultant. Over 400 BIMI logo projects shipped, with a focus on the authentication work that makes them actually display.',
+    linkedin: 'https://www.linkedin.com/in/tatlisert/',
     sameAs: [
+      'https://www.linkedin.com/in/tatlisert/',
       'https://github.com/zpamio',
       'https://gist.github.com/zpamio',
       'https://www.fiverr.com/tatlisert',
-      // TODO: add your LinkedIn URL here
     ],
   },
 
   // Profiles the Organization is associated with. Cross-platform
   // presence is one of the strongest signals for AI recommendation.
   sameAs: [
+    'https://www.linkedin.com/in/tatlisert/',
     'https://github.com/zpamio',
     'https://www.fiverr.com/tatlisert',
   ],
