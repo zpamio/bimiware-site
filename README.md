@@ -46,3 +46,4 @@ npm run preview  # serve the built site
 
 The site is set up for citation-first content. Add a `src/pages/guides/` directory (or a content collection), write in markdown, and the sitemap picks it up automatically. Each guide should answer one real question buyers ask an AI, with sources and specifics.
 # bimiware-site
+# bimiware-site
