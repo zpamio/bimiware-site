@@ -1,11 +1,29 @@
 ---
 import Base from '../layouts/Base.astro';
-import StripeButton from '../components/StripeButton.astro';
+import Process from '../components/Process.astro';
+import Reviews from '../components/Reviews.astro';
+import Work from '../components/Work.astro';
+import Founder from '../components/Founder.astro';
 import { SITE } from '../data/site';
 import { SERVICES } from '../data/services';
 
 const title = `${SITE.name} — ${SITE.tagline}`;
 const description = SITE.description;
+
+// Build-time fetch of public gists. Runs on the build server (clean IP),
+// wrapped so a rate limit or offline build never breaks the build.
+let gists: any[] = [];
+try {
+  const res = await fetch('https://api.github.com/users/zpamio/gists?per_page=6', {
+    headers: { 'User-Agent': 'bimiware-site', Accept: 'application/vnd.github+json' },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    if (Array.isArray(data)) gists = data;
+  }
+} catch {
+  gists = [];
+}
 
 const homeFaqs = [
   {
@@ -18,7 +36,7 @@ const homeFaqs = [
   },
   {
     q: 'Do I need a trademark for BIMI?',
-    a: 'No longer. A VMC requires a registered trademark and unlocks the Gmail verified checkmark. Since 2024 Gmail also accepts a CMC, which needs no trademark, only proof your logo has been publicly displayed for at least 12 months. That opened BIMI to brands without a registered mark.',
+    a: 'No longer. A VMC requires a registered trademark and unlocks the Gmail verified checkmark. Since 2024 Gmail also accepts a CMC, which needs no trademark, only proof your logo has been publicly displayed on your domain for at least 12 months. That opened BIMI to brands without a registered mark.',
   },
   {
     q: 'Which inboxes support BIMI?',
@@ -36,7 +54,6 @@ const itemListSchema = {
     name: s.name,
   })),
 };
-
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -49,99 +66,140 @@ const faqSchema = {
 ---
 
 <Base title={title} description={description} schema={[itemListSchema, faqSchema]}>
+  <!-- HERO -->
   <section class="hero">
-    <div class="container">
-      <p class="eyebrow">BIMI · VMC &amp; CMC · DMARC alignment</p>
-      <h1 class="maxw-prose">Your logo in the inbox, engineered to pass.</h1>
-      <p class="lead" style="margin-top: 22px;">
-        BIMI rejects most logos on the first attempt and stays dark until your
-        authentication is right. We handle both: the SVG rebuilt to SVG Tiny PS,
-        and the DMARC, SPF and DKIM alignment that BIMI depends on.
-      </p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="#services">See the services</a>
-        <a class="btn btn-ghost" href="/start">Start a project</a>
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow reveal">BIMI &middot; VMC &amp; CMC &middot; DMARC alignment</p>
+        <h1 class="reveal" style="--d: 60ms;">Your logo in the inbox, engineered to pass.</h1>
+        <p class="lead reveal" style="--d: 140ms; margin-top: 22px;">
+          BIMI rejects most logos on the first attempt and stays dark until your
+          authentication is right. We handle both: the SVG rebuilt to SVG Tiny PS,
+          and the DMARC, SPF and DKIM alignment the logo depends on.
+        </p>
+        <div class="btn-row reveal" style="--d: 220ms; margin-top: 30px;">
+          <a class="btn btn-primary" href="/services/bimi-svg-fix">Fix my SVG &middot; $49</a>
+          <a class="btn btn-ghost" href="#services">See all services</a>
+        </div>
+        <div class="stat-row reveal" style="--d: 300ms;">
+          <div class="stat"><div class="n">{SITE.projectsCompleted}<span>+</span></div><div class="l">SVG projects shipped</div></div>
+          <div class="stat"><div class="n">3</div><div class="l">Inboxes covered</div></div>
+          <div class="stat"><div class="n">$49</div><div class="l">Fixed entry price</div></div>
+        </div>
       </div>
-      <div class="stat-row">
-        <div class="stat">
-          <div class="n">{SITE.projectsCompleted}+</div>
-          <div class="l">SVG projects completed</div>
-        </div>
-        <div class="stat">
-          <div class="n">3</div>
-          <div class="l">Inboxes covered</div>
-        </div>
-        <div class="stat">
-          <div class="n">SVG Tiny PS</div>
-          <div class="l">The profile we build to</div>
+
+      <div class="reveal" style="--d: 200ms;">
+        <div class="inbox" role="img" aria-label="An inbox where an unverified sender shows no logo and a BIMI-verified sender shows its brand logo">
+          <div class="inbox-bar"><i></i><i></i><i></i></div>
+          <div class="inbox-row">
+            <span class="avatar plain">?</span>
+            <span class="meta">
+              <span class="from">unknown-sender.com</span>
+              <span class="sub">No logo. No trust signal.</span>
+            </span>
+          </div>
+          <div class="inbox-row live">
+            <span class="avatar brand">B</span>
+            <span class="meta">
+              <span class="from">Bimiware <span class="tag-ok">BIMI</span></span>
+              <span class="sub">Verified logo, authenticated sender.</span>
+            </span>
+          </div>
+          <div class="inbox-row">
+            <span class="avatar plain">m</span>
+            <span class="meta">
+              <span class="from">marketing@brand.co</span>
+              <span class="sub">p=none. Logo will not display.</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container maxw-prose stack">
-      <p class="eyebrow">The thing most providers miss</p>
-      <h2>BIMI is gated behind DMARC.</h2>
-      <p>
-        A logo will not display without DMARC at enforcement, a policy of
-        quarantine or reject. Most domains are stuck at <code>p=none</code>, which
-        means the logo physically cannot appear no matter how perfect the SVG is.
-        Fixing the file is the visible step. Getting authentication right is the
-        one that actually makes it work.
-      </p>
-      <p>
-        Since 2024 the barrier dropped further. Gmail now accepts a Common Mark
-        Certificate, so brands without a registered trademark can display a logo
-        too. The market opened. The technical requirements did not get any softer.
-      </p>
+  <!-- INSIGHT -->
+  <section class="section section--alt">
+    <div class="container" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center;">
+      <div class="maxw-prose">
+        <p class="eyebrow reveal">The thing most providers miss</p>
+        <h2 class="reveal" style="--d: 60ms;">BIMI is gated behind DMARC.</h2>
+        <p class="reveal" style="--d: 120ms; margin-top: 18px;">
+          A logo will not display without DMARC at enforcement, a policy of
+          quarantine or reject. Most domains sit at <code>p=none</code>, which means
+          the logo physically cannot appear no matter how perfect the SVG is. Fixing
+          the file is the visible step. Getting authentication right is the one that
+          makes it work.
+        </p>
+        <p class="reveal" style="--d: 180ms; margin-top: 14px;">
+          Since 2024 the barrier dropped further. Gmail now accepts a Common Mark
+          Certificate, so brands without a registered trademark can display a logo
+          too. The market opened. The technical requirements did not get softer.
+        </p>
+      </div>
+      <div class="reveal" style="--d: 160ms;">
+        <div class="snippet">
+<span class="c">; the record that points to your logo</span>
+default._bimi  IN TXT  (
+  "v=BIMI1;
+   <span class="k">l=</span>https://bimiware.com/logo.svg;
+   <span class="k">a=</span>https://bimiware.com/vmc.pem" )
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+          <span class="pill pill--ok"><span class="dot"></span>SVG Tiny PS &middot; PASS</span>
+          <span class="pill pill--ok"><span class="dot"></span>DMARC &middot; p=reject</span>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- SERVICES -->
   <section class="section" id="services">
     <div class="container">
-      <p class="eyebrow">Services</p>
-      <h2 style="margin-bottom: 36px;">From a single logo fix to the full stack.</h2>
+      <p class="eyebrow reveal">Services</p>
+      <h2 class="reveal" style="--d: 60ms; margin-bottom: 38px;">From a single logo fix to the full stack.</h2>
       <div class="grid grid-3">
-        {
-          SERVICES.map((s) => (
-            <a class="card" href={`/services/${s.slug}`}>
-              <div class="tier">{s.tier}</div>
-              <h3>{s.name}</h3>
-              <p style="flex: 1;">{s.oneLiner}</p>
-              <div class="price">
-                {s.price}
-                {s.priceQualifier && <small>{s.priceQualifier}</small>}
-              </div>
-            </a>
-          ))
-        }
+        {SERVICES.map((s, i) => (
+          <a class="card reveal" style={`--d: ${i * 70}ms;`} href={`/services/${s.slug}`}>
+            <div class="tier">{s.tier}</div>
+            <h3>{s.name}</h3>
+            <p style="flex: 1;">{s.oneLiner}</p>
+            <div class="price">
+              {s.price}{s.priceQualifier && <small>{s.priceQualifier}</small>}
+              <span class="arrow" style="float: right;">&rarr;</span>
+            </div>
+          </a>
+        ))}
       </div>
     </div>
   </section>
 
-  <section class="section">
+  <Process />
+  <Reviews />
+  <Work gists={gists} profileUrl="https://gist.github.com/zpamio" />
+  <Founder />
+
+  <!-- FAQ -->
+  <section class="section section--alt">
     <div class="container maxw-prose">
-      <p class="eyebrow">Common questions</p>
-      <h2 style="margin-bottom: 28px;">BIMI, briefly.</h2>
-      {
-        homeFaqs.map((f) => (
-          <div class="faq">
-            <h3>{f.q}</h3>
-            <p>{f.a}</p>
-          </div>
-        ))
-      }
+      <p class="eyebrow reveal">Common questions</p>
+      <h2 class="reveal" style="--d: 60ms; margin-bottom: 24px;">BIMI, briefly.</h2>
+      {homeFaqs.map((f, i) => (
+        <div class="faq reveal" style={`--d: ${i * 50}ms;`}>
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </div>
+      ))}
     </div>
   </section>
 
-  <section class="section">
-    <div class="container" style="text-align: center;">
-      <h2>Send the logo. We will tell you what is wrong with it.</h2>
-      <p class="lead" style="margin: 18px auto 30px;">
-        Start with the $49 logo fix, or scope a larger authentication project.
+  <!-- CTA -->
+  <section class="section center">
+    <div class="container">
+      <h2 class="reveal">Send the logo. We will tell you what is wrong with it.</h2>
+      <p class="lead reveal" style="--d: 80ms; margin: 18px auto 30px;">
+        Start with the $49 fix, or scope a larger authentication project.
       </p>
-      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <div class="btn-row reveal" style="--d: 140ms; justify-content: center;">
         <a class="btn btn-primary" href="/services/bimi-svg-fix">Fix my SVG</a>
         <a class="btn btn-ghost" href="/start">Start a project</a>
       </div>

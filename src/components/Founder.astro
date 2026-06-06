@@ -1,0 +1,33 @@
+---
+import { SITE } from '../data/site';
+const initial = SITE.founder.name.trim().charAt(0).toUpperCase() || 'B';
+---
+
+<section class="section">
+  <div class="container">
+    <p class="eyebrow reveal">Who does the work</p>
+    <div class="founder reveal" style="--d: 60ms;">
+      <div class="id-badge" aria-hidden="true">{initial}</div>
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 600;">
+          {SITE.founder.name}
+        </h3>
+        <p class="mono dim" style="font-size: 0.85rem; margin: 4px 0 14px;">
+          {SITE.founder.jobTitle}
+        </p>
+        <p class="maxw-prose">
+          Bimiware is not an agency front. The person you hire is the person who
+          rebuilds the SVG, reads the DMARC reports, and confirms the logo in your
+          inbox. The work spans email deliverability, authentication and
+          compliance, backed by {SITE.projectsCompleted}+ completed logo projects
+          and open-source tools you can inspect.
+        </p>
+        <div class="mono-links">
+          <a href="https://github.com/zpamio" rel="me noopener">GitHub &#8599;</a>
+          <a href="https://www.fiverr.com/tatlisert" rel="me noopener">Fiverr Pro &#8599;</a>
+          <a href={`mailto:${SITE.email}`}>Email &#8599;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

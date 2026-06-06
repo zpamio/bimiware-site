@@ -1,0 +1,78 @@
+---
+// Receives gists fetched at build time in index.astro. Renders real
+// open-source work as a legitimacy and GEO signal. If the fetch returned
+// nothing (rate limit, offline build), it falls back to a single link card.
+interface GistFile {
+  filename?: string;
+  language?: string | null;
+}
+interface Gist {
+  html_url: string;
+  description: string | null;
+  updated_at: string;
+  files: Record<string, GistFile>;
+}
+interface Props {
+  gists: Gist[];
+  profileUrl: string;
+}
+const { gists, profileUrl } = Astro.props;
+
+function fmt(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+  } catch {
+    return '';
+  }
+}
+const items = (gists ?? []).slice(0, 6);
+---
+
+<section class="section section--alt" id="work">
+  <div class="container">
+    <div
+      style="display: flex; flex-wrap: wrap; gap: 20px; align-items: end; justify-content: space-between; margin-bottom: 40px;"
+    >
+      <div>
+        <p class="eyebrow reveal">Open source</p>
+        <h2 class="reveal" style="--d: 60ms;">The work is public.</h2>
+        <p class="lead reveal" style="--d: 120ms; margin-top: 16px;">
+          Tools and snippets from real BIMI and deliverability work, published on GitHub.
+        </p>
+      </div>
+      <a class="btn btn-ghost reveal" style="--d: 160ms;" href={profileUrl} rel="noopener">
+        View all on GitHub &rarr;
+      </a>
+    </div>
+
+    {
+      items.length > 0 ? (
+        <div class="grid grid-3">
+          {items.map((g, i) => {
+            const names = Object.keys(g.files ?? {});
+            const first = g.files?.[names[0]];
+            const lang = first?.language;
+            return (
+              <a class="work-card reveal" style={`--d: ${i * 80}ms;`} href={g.html_url} rel="noopener">
+                <div class="file">{first?.filename ?? names[0] ?? 'gist'}</div>
+                <div class="desc">{g.description || 'No description'}</div>
+                <div class="meta">
+                  {lang && <span>{lang}</span>}
+                  <span>{fmt(g.updated_at)}</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      ) : (
+        <a class="work-card reveal" href={profileUrl} rel="noopener" style="max-width: 420px;">
+          <div class="file">gist.github.com/zpamio</div>
+          <div class="desc">
+            Browse the full collection of BIMI and email authentication tools and snippets.
+          </div>
+          <div class="meta"><span>GitHub</span></div>
+        </a>
+      )
+    }
+  </div>
+</section>

@@ -1,0 +1,52 @@
+---
+import { REVIEWS, PROOF } from '../data/reviews';
+import { SITE } from '../data/site';
+---
+
+<section class="section section--alt" id="proof">
+  <div class="container">
+    <div
+      style="display: flex; flex-wrap: wrap; gap: 20px; align-items: end; justify-content: space-between; margin-bottom: 40px;"
+    >
+      <div>
+        <p class="eyebrow reveal">Proof</p>
+        <h2 class="reveal" style="--d: 60ms;">Logos shipped, not promised.</h2>
+      </div>
+      <a
+        class="pill pill--ok reveal"
+        style="--d: 120ms;"
+        href={PROOF.fiverrUrl}
+        rel="noopener"
+      >
+        <span class="dot"></span>
+        {PROOF.rating} {PROOF.ratingLabel} &middot; {SITE.projectsCompleted}+ projects
+      </a>
+    </div>
+
+    <div class="grid grid-3">
+      {
+        REVIEWS.map((r, i) => (
+          <figure class="quote reveal" style={`--d: ${i * 90}ms;`}>
+            <div class="stars" aria-label="5 out of 5">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <blockquote>{r.text}</blockquote>
+            <figcaption class="by">
+              <span class="flag">{r.flag}</span>
+              <span>
+                <span class="who">{r.name}</span>
+                <br />
+                <span class="src">{r.service}</span>
+              </span>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <p class="dim reveal" style="margin-top: 28px; font-size: 0.92rem;">
+      Every engagement is logged and reviewed on Fiverr Pro.
+      <a href={PROOF.fiverrUrl} rel="noopener" style="color: var(--text-2);">
+        Read the full review history &rarr;
+      </a>
+    </p>
+  </div>
+</section>

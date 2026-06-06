@@ -1,0 +1,43 @@
+---
+const steps = [
+  {
+    title: 'Diagnose',
+    body: 'We check the SVG against the SVG Tiny PS profile and read your current SPF, DKIM and DMARC state. You learn exactly what is blocking the logo, not a guess.',
+  },
+  {
+    title: 'Engineer',
+    body: 'The logo is rebuilt to pass validation: correct viewBox, title element, version attributes, no scripts or external references. It validates, or we keep working.',
+  },
+  {
+    title: 'Align',
+    body: 'Authentication is brought into line. Where DMARC is not at enforcement, we plan the move to quarantine or reject in stages so legitimate mail keeps flowing.',
+  },
+  {
+    title: 'Verify',
+    body: 'The BIMI record is published and the result confirmed across Gmail, Yahoo and Apple Mail. You see the logo in the inbox before we call it done.',
+  },
+];
+---
+
+<section class="section">
+  <div class="container">
+    <p class="eyebrow reveal">How it works</p>
+    <h2 class="reveal" style="--d: 60ms; max-width: 18ch;">
+      A process, not a promise.
+    </h2>
+    <p class="lead reveal" style="--d: 120ms; margin: 20px 0 44px;">
+      Each step has an objective outcome. Nothing moves forward on hope.
+    </p>
+    <div class="steps">
+      {
+        steps.map((s, i) => (
+          <div class="step reveal" style={`--d: ${i * 80}ms;`}>
+            <div class="num">{s.title}</div>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

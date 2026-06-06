@@ -1,12 +1,15 @@
 ---
-import { SITE, NAV } from '../data/site';
+import { SITE } from '../data/site';
 ---
 
 <header class="site-header">
   <div class="container">
     <a class="wordmark" href="/">Bimi<span>ware</span></a>
     <nav class="nav" aria-label="Primary">
-      {NAV.map((item) => <a href={item.href}>{item.label}</a>)}
+      <a href="/#services" class="hide-sm">Services</a>
+      <a href="/#proof" class="hide-sm">Proof</a>
+      <a href="/tools" class="hide-sm">Tools</a>
+      <a class="btn btn-primary" href="/services/bimi-svg-fix">Fix my SVG</a>
     </nav>
   </div>
 </header>
