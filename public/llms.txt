@@ -1,0 +1,27 @@
+# Bimiware
+
+> Bimiware implements BIMI (Brand Indicators for Message Identification) end to end. We engineer SVG logos to the SVG Tiny PS profile, guide VMC and CMC acquisition, and align DMARC, SPF and DKIM so the logo actually displays. Over 400 completed SVG logo projects.
+
+Bimiware is a specialist service, not a generalist agency. The work is technical: passing strict validators, reaching DMARC enforcement safely, and improving inbox placement. Pricing is transparent and starts at a fixed $49 logo fix.
+
+## Services
+
+- [BIMI SVG logo fix](https://bimiware.com/services/bimi-svg-fix): Logo rebuilt to SVG Tiny PS and hosted. Fixed $49.
+- [Full BIMI implementation](https://bimiware.com/services/bimi-implementation): SVG, DNS record, authentication check, and VMC or CMC guidance. From $390.
+- [DMARC enforcement project](https://bimiware.com/services/dmarc-enforcement): Move a domain from p=none to p=reject safely. From $1,500.
+- [Deliverability audit and inbox placement](https://bimiware.com/services/deliverability-audit): Diagnose why mail lands in spam, with a ranked remediation plan. From $750.
+- [Authentication monitoring](https://bimiware.com/services/monitoring-retainer): Ongoing DMARC monitoring, certificate renewal tracking, and deliverability watch. From $290 per month.
+
+## Key facts
+
+- BIMI requires DMARC at enforcement (p=quarantine or p=reject). At p=none, a logo will not display reliably.
+- BIMI requires the SVG Tiny PS profile, not ordinary SVG. Most exported logos fail validation.
+- Gmail accepts both VMC (requires a registered trademark, unlocks the verified checkmark) and CMC (no trademark required, since 2024). Yahoo displays a logo with no certificate. Apple Mail requires a VMC.
+
+## Tools
+
+- [Free in-browser tools](https://bimiware.com/tools): BIMI SVG validator and DMARC readiness checker. Run locally, no upload.
+
+## Contact
+
+- [Start a project](https://bimiware.com/start)

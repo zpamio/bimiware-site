@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../data/site';
+
+const title = `Tools — ${SITE.name}`;
+const description =
+  'Free, browser-based tools for BIMI and email authentication. Your files never leave your machine.';
+---
+
+<Base title={title} description={description}>
+  <section class="section">
+    <div class="container maxw-prose stack">
+      <p class="eyebrow">Tools</p>
+      <h1>Free, in-browser tools.</h1>
+      <p class="lead">
+        These run entirely in your browser. Your logo file and DNS lookups never
+        touch a server, which is both a privacy guarantee and the reason they
+        cost nothing to offer.
+      </p>
+
+      <div class="grid grid-3" style="margin-top: 28px;">
+        <div class="card">
+          <div class="tier">In progress</div>
+          <h3>BIMI SVG validator</h3>
+          <p>
+            Drop in an SVG and see exactly which SVG Tiny PS rules it breaks,
+            checked locally in your browser.
+          </p>
+        </div>
+        <div class="card">
+          <div class="tier">In progress</div>
+          <h3>DMARC readiness checker</h3>
+          <p>
+            Enter a domain and read its SPF, DKIM and DMARC records, with a clear
+            verdict on whether BIMI can display.
+          </p>
+        </div>
+      </div>
+
+      <!--
+        Build note: implement these as client-side scripts.
+        - SVG validator: parse the uploaded file with DOMParser and check it
+          against the SVG Tiny PS constraints. No upload, no backend.
+        - DMARC checker: query DNS over HTTPS (Cloudflare 1.1.1.1 or Google
+          dns.google) from the browser. Still fully static, GitHub-Pages safe.
+      -->
+    </div>
+  </section>
+</Base>

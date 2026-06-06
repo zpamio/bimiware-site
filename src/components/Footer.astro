@@ -1,0 +1,19 @@
+---
+import { SITE } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <strong style="color: var(--text-muted)">{SITE.name}</strong> &middot;
+      BIMI and email authentication, by {SITE.founder.name}.
+    </div>
+    <div style="display: flex; gap: 20px;">
+      <a href="https://github.com/zpamio" rel="me">GitHub</a>
+      <a href="https://www.fiverr.com/tatlisert" rel="me">Fiverr</a>
+      <a href={`mailto:${SITE.email}`}>Email</a>
+    </div>
+    <div>&copy; {year}</div>
+  </div>
+</footer>

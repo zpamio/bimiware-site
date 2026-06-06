@@ -1,0 +1,28 @@
+---
+// Renders a Stripe Payment Link button. If the URL still contains the
+// REPLACE placeholder, it renders disabled so nothing ships broken.
+interface Props {
+  url: string;
+  label?: string;
+  recurring?: boolean;
+}
+const { url, label, recurring = false } = Astro.props;
+const ready = url && !url.includes('REPLACE');
+const text = label ?? (recurring ? 'Start subscription' : 'Buy now');
+---
+
+{
+  ready ? (
+    <a class="btn btn-primary" href={url} rel="noopener">
+      {text}
+    </a>
+  ) : (
+    <span
+      class="btn"
+      aria-disabled="true"
+      title="Paste your Stripe Payment Link in src/data/services.ts"
+    >
+      Payment link pending
+    </span>
+  )
+}

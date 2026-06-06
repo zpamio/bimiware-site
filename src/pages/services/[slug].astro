@@ -1,0 +1,117 @@
+---
+import Base from '../../layouts/Base.astro';
+import StripeButton from '../../components/StripeButton.astro';
+import { SITE } from '../../data/site';
+import { SERVICES } from '../../data/services';
+
+export function getStaticPaths() {
+  return SERVICES.map((service) => ({
+    params: { slug: service.slug },
+    props: { service },
+  }));
+}
+
+const { service } = Astro.props;
+const pageUrl = `${SITE.url}/services/${service.slug}`;
+
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: service.name,
+  description: service.summary,
+  serviceType: service.name,
+  provider: { '@id': `${SITE.url}/#organization` },
+  areaServed: 'Worldwide',
+  url: pageUrl,
+  offers: {
+    '@type': 'Offer',
+    price: service.priceValue,
+    priceCurrency: 'USD',
+    url: pageUrl,
+    ...(service.recurring
+      ? {
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: service.priceValue,
+            priceCurrency: 'USD',
+            billingDuration: 1,
+            unitCode: 'MON',
+          },
+        }
+      : {}),
+  },
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: service.faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+    { '@type': 'ListItem', position: 2, name: 'Services', item: `${SITE.url}/#services` },
+    { '@type': 'ListItem', position: 3, name: service.name, item: pageUrl },
+  ],
+};
+---
+
+<Base
+  title={`${service.name} — ${SITE.name}`}
+  description={service.oneLiner}
+  schema={[serviceSchema, faqSchema, breadcrumbSchema]}
+>
+  <section class="section">
+    <div class="container maxw-prose">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a> / <a href="/#services">Services</a> / {service.name}
+      </nav>
+
+      <p class="eyebrow">{service.tier}</p>
+      <h1>{service.name}</h1>
+      <p class="lead" style="margin-top: 20px;">{service.oneLiner}</p>
+
+      <div style="display: flex; align-items: baseline; gap: 14px; margin: 28px 0;">
+        <span class="mono" style="font-size: 1.6rem; color: var(--text);">
+          {service.price}{service.priceQualifier ?? ''}
+        </span>
+        <StripeButton url={service.stripeUrl} recurring={service.recurring} />
+      </div>
+
+      <p>{service.summary}</p>
+
+      <h2 style="margin: 44px 0 18px;">What you get</h2>
+      <ul class="checklist">
+        {service.deliverables.map((d) => <li>{d}</li>)}
+      </ul>
+
+      <p class="muted mono" style="margin-top: 28px; font-size: 0.9rem;">
+        Turnaround: {service.turnaround}
+      </p>
+
+      <h2 style="margin: 52px 0 8px;">Questions</h2>
+      {
+        service.faqs.map((f) => (
+          <div class="faq">
+            <h3>{f.q}</h3>
+            <p>{f.a}</p>
+          </div>
+        ))
+      }
+
+      <div
+        style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border); display: flex; gap: 12px; flex-wrap: wrap; align-items: center;"
+      >
+        <StripeButton url={service.stripeUrl} recurring={service.recurring} />
+        <a class="btn btn-ghost" href="/start">Ask a question first</a>
+      </div>
+    </div>
+  </section>
+</Base>

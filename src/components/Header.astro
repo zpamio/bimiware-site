@@ -1,0 +1,12 @@
+---
+import { SITE, NAV } from '../data/site';
+---
+
+<header class="site-header">
+  <div class="container">
+    <a class="wordmark" href="/">Bimi<span>ware</span></a>
+    <nav class="nav" aria-label="Primary">
+      {NAV.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+  </div>
+</header>

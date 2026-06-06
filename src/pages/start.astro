@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../data/site';
+
+const title = `Start a project — ${SITE.name}`;
+const description =
+  'Tell us about your domain and what you need. We scope BIMI and authentication projects from here.';
+
+// Paste your Formaloo form embed URL here. On the free tier you embed the
+// form by iframe so visitors stay on bimiware.com. Responses land in your
+// Formaloo database, which doubles as your CRM.
+const FORMALOO_EMBED_URL = ''; // TODO: e.g. https://app.formaloo.io/v3/form/xxxxxxxx
+---
+
+<Base title={title} description={description}>
+  <section class="section">
+    <div class="container maxw-prose stack">
+      <p class="eyebrow">Start a project</p>
+      <h1>Tell us about your setup.</h1>
+      <p class="lead">
+        Share your domain, your current authentication state, and what you are
+        trying to achieve. For a logo fix you can also just buy the $49 service
+        directly and send the file.
+      </p>
+
+      {
+        FORMALOO_EMBED_URL ? (
+          <iframe
+            src={FORMALOO_EMBED_URL}
+            title="Project intake form"
+            style="width: 100%; min-height: 720px; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 24px;"
+            loading="lazy"
+          />
+        ) : (
+          <div
+            class="card"
+            style="margin-top: 24px; border-style: dashed;"
+          >
+            <h3>Intake form goes here</h3>
+            <p>
+              Create your intake form in Formaloo, copy its embed or share URL,
+              and paste it into <code>FORMALOO_EMBED_URL</code> in
+              <code>src/pages/start.astro</code>. Until then, reach out by email.
+            </p>
+            <a class="btn btn-ghost" href={`mailto:${SITE.email}`} style="align-self: flex-start; margin-top: 8px;">
+              Email {SITE.email}
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Base>
