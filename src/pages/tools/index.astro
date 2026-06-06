@@ -2,48 +2,305 @@
 import Base from '../../layouts/Base.astro';
 import { SITE } from '../../data/site';
 
-const title = `Tools — ${SITE.name}`;
+const title = `BIMI tools — SVG validator & DMARC checker — ${SITE.name}`;
 const description =
-  'Free, browser-based tools for BIMI and email authentication. Your files never leave your machine.';
+  'Free, in-browser BIMI tools: validate an SVG against the SVG Tiny PS profile, and check a domain for BIMI, DMARC and SPF records. Your files never leave your machine.';
+
+// SoftwareApplication schema for the tool page (an AI-friendly, citeable asset).
+const appSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Bimiware BIMI Tools',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any (web browser)',
+  url: `${SITE.url}/tools`,
+  description:
+    'Validate an SVG against the SVG Tiny PS profile and check a domain for BIMI, DMARC and SPF records, entirely in the browser.',
+  offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
+  publisher: { '@id': `${SITE.url}/#organization` },
+};
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} schema={[appSchema]}>
   <section class="section">
-    <div class="container maxw-prose stack">
-      <p class="eyebrow">Tools</p>
-      <h1>Free, in-browser tools.</h1>
-      <p class="lead">
-        These run entirely in your browser. Your logo file and DNS lookups never
-        touch a server, which is both a privacy guarantee and the reason they
-        cost nothing to offer.
-      </p>
-
-      <div class="grid grid-3" style="margin-top: 28px;">
-        <div class="card">
-          <div class="tier">In progress</div>
-          <h3>BIMI SVG validator</h3>
-          <p>
-            Drop in an SVG and see exactly which SVG Tiny PS rules it breaks,
-            checked locally in your browser.
-          </p>
-        </div>
-        <div class="card">
-          <div class="tier">In progress</div>
-          <h3>DMARC readiness checker</h3>
-          <p>
-            Enter a domain and read its SPF, DKIM and DMARC records, with a clear
-            verdict on whether BIMI can display.
-          </p>
-        </div>
+    <div class="container">
+      <div class="maxw-prose" style="margin-bottom: 36px;">
+        <p class="eyebrow">Tools</p>
+        <h1>Check your BIMI setup.</h1>
+        <p class="lead" style="margin-top: 18px;">
+          Both tools run entirely in your browser. The SVG never uploads anywhere,
+          and DNS lookups go straight to a public resolver. Nothing touches our servers.
+        </p>
       </div>
 
-      <!--
-        Build note: implement these as client-side scripts.
-        - SVG validator: parse the uploaded file with DOMParser and check it
-          against the SVG Tiny PS constraints. No upload, no backend.
-        - DMARC checker: query DNS over HTTPS (Cloudflare 1.1.1.1 or Google
-          dns.google) from the browser. Still fully static, GitHub-Pages safe.
-      -->
+      <!-- SVG VALIDATOR -->
+      <div class="tool" id="svg-tool">
+        <h3>SVG Tiny PS validator</h3>
+        <p class="hint">
+          Paste your SVG markup or load a file. We check it against the rules BIMI
+          enforces. The file stays on your machine.
+        </p>
+        <div class="field">
+          <textarea
+            class="code-in"
+            id="svg-input"
+            spellcheck="false"
+            placeholder="Paste your <svg> ... </svg> markup here"
+          ></textarea>
+        </div>
+        <div class="tool-actions">
+          <button class="btn btn-primary" id="svg-validate">Validate SVG</button>
+          <label class="file-label">
+            Load file
+            <input type="file" id="svg-file" accept=".svg,image/svg+xml" hidden />
+          </label>
+          <button class="btn btn-ghost" id="svg-clear">Clear</button>
+        </div>
+        <div id="svg-result" aria-live="polite"></div>
+        <p class="tool-note">
+          This covers the common SVG Tiny PS rules that cause real rejections. For the
+          final word, your certificate authority runs the authoritative validation.
+        </p>
+      </div>
+
+      <!-- DNS CHECKER -->
+      <div class="tool" id="dns-tool">
+        <h3>BIMI &amp; DMARC record checker</h3>
+        <p class="hint">
+          Enter a domain. We read its BIMI, DMARC and SPF records over public
+          DNS-over-HTTPS and tell you whether a logo can display.
+        </p>
+        <div class="field">
+          <input class="text-in" id="dns-input" type="text" placeholder="example.com" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="tool-actions">
+          <button class="btn btn-primary" id="dns-check">Check domain</button>
+        </div>
+        <div id="dns-result" aria-live="polite"></div>
+        <p class="tool-note">
+          DNS is queried via Google's public resolver (dns.google). DKIM is
+          selector-specific and is not checked here.
+        </p>
+      </div>
     </div>
   </section>
+
+  <script is:inline>
+    (function () {
+      // ---------- helpers ----------
+      function esc(s) {
+        return String(s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+      function renderList(items) {
+        var ic = { ok: '\u2713', err: '\u2715', warn: '!' };
+        return (
+          '<ul class="result-list">' +
+          items
+            .map(function (r) {
+              return (
+                '<li class="result-item ' + r.level + '"><span class="ic">' +
+                ic[r.level] + '</span><span class="tx">' + esc(r.msg) + '</span></li>'
+              );
+            })
+            .join('') +
+          '</ul>'
+        );
+      }
+
+      // ---------- SVG Tiny PS validator ----------
+      function validateSvg(text) {
+        var results = [];
+        var add = function (level, msg) { results.push({ level: level, msg: msg }); };
+
+        var doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+        if (doc.querySelector('parsererror')) {
+          return { results: [{ level: 'err', msg: 'File is not well-formed XML. Fix the syntax before anything else.' }], ok: false };
+        }
+        var root = doc.documentElement;
+        if (!root || root.localName.toLowerCase() !== 'svg') {
+          return { results: [{ level: 'err', msg: 'Root element is not <svg>.' }], ok: false };
+        }
+
+        var ns = root.getAttribute('xmlns') || root.namespaceURI;
+        if (ns !== 'http://www.w3.org/2000/svg') add('err', 'Missing or wrong SVG namespace. Root needs xmlns="http://www.w3.org/2000/svg".');
+        else add('ok', 'SVG namespace is correct.');
+
+        if (root.getAttribute('version') !== '1.2') add('err', 'Root <svg> must declare version="1.2".');
+        else add('ok', 'version="1.2" present.');
+
+        if ((root.getAttribute('baseProfile') || '').toLowerCase() !== 'tiny-ps') add('err', 'Root <svg> must declare baseProfile="tiny-ps".');
+        else add('ok', 'baseProfile="tiny-ps" present.');
+
+        var titles = Array.prototype.filter.call(root.children, function (c) { return c.localName.toLowerCase() === 'title'; });
+        if (titles.length === 0) add('err', 'Missing <title> element as a direct child of <svg>.');
+        else add('ok', '<title> element present.');
+
+        var vb = root.getAttribute('viewBox');
+        if (!vb) add('err', 'Missing viewBox on the root <svg>.');
+        else {
+          var p = vb.trim().split(/[\s,]+/).map(Number);
+          if (p.length !== 4 || p.some(isNaN)) add('err', 'viewBox is malformed. Expected "minX minY width height".');
+          else {
+            if (p[2] !== p[3]) add('err', 'viewBox is not square (' + p[2] + ' x ' + p[3] + '). BIMI requires a 1:1 square.');
+            else add('ok', 'viewBox is square (' + p[2] + ' x ' + p[3] + ').');
+            if (p[0] !== 0 || p[1] !== 0) add('warn', 'viewBox should start at "0 0" for best compatibility.');
+          }
+        }
+
+        if (root.hasAttribute('width') || root.hasAttribute('height')) add('warn', 'Root <svg> has width/height attributes. Remove them and rely on viewBox.');
+
+        var all = Array.prototype.slice.call(doc.querySelectorAll('*'));
+        var tag = function (el) { return el.localName.toLowerCase(); };
+        var forbidden = {
+          script: 'Contains <script>. Scripting is not allowed.',
+          image: 'Contains <image> (raster). Raster images are not allowed; use vector paths.',
+          a: 'Contains <a> (hyperlink). Links are not allowed.',
+          foreignobject: 'Contains <foreignObject>. Not allowed.',
+          animate: 'Contains animation (<animate>). Not allowed.',
+          animatetransform: 'Contains animation (<animateTransform>). Not allowed.',
+          animatemotion: 'Contains animation (<animateMotion>). Not allowed.',
+          set: 'Contains <set> animation. Not allowed.',
+          video: 'Contains <video>. Not allowed.',
+          audio: 'Contains <audio>. Not allowed.'
+        };
+        var seen = {};
+        all.forEach(function (el) {
+          var t = tag(el);
+          if (forbidden[t] && !seen[t]) { add('err', forbidden[t]); seen[t] = true; }
+        });
+
+        if (all.some(function (el) { var t = tag(el); return t === 'text' || t === 'tspan' || t === 'font'; })) {
+          add('warn', 'Contains text or font elements. Convert text to outlined vector paths; fonts may not render.');
+        }
+
+        var extRef = false, dataUri = false, extStyle = false;
+        all.forEach(function (el) {
+          Array.prototype.forEach.call(el.attributes, function (attr) {
+            var v = (attr.value || '').trim();
+            var n = attr.name.toLowerCase();
+            if ((n === 'href' || n.indexOf(':href') !== -1) && /^(https?:)?\/\//i.test(v)) extRef = true;
+            if (/url\(\s*['"]?\s*(https?:)?\/\//i.test(v)) extRef = true;
+            if (/data:/i.test(v)) dataUri = true;
+          });
+          if (tag(el) === 'style' && /@import/i.test(el.textContent || '')) extStyle = true;
+        });
+        if (/<\?xml-stylesheet/i.test(text)) extStyle = true;
+
+        if (extRef) add('err', 'Contains external references (http/https URLs). Everything must be inline.');
+        else add('ok', 'No external references found.');
+        if (dataUri) add('err', 'Contains a data: URI (embedded raster or external data). Not allowed.');
+        if (extStyle) add('err', 'References an external stylesheet (@import or xml-stylesheet). Not allowed.');
+
+        var bytes = new Blob([text]).size;
+        if (bytes > 32 * 1024) add('warn', 'File is ' + (bytes / 1024).toFixed(1) + ' KB. Keep the logo small, ideally under 32 KB.');
+
+        var ok = !results.some(function (r) { return r.level === 'err'; });
+        return { results: results, ok: ok };
+      }
+
+      var $ = function (id) { return document.getElementById(id); };
+
+      function runSvg() {
+        var text = $('svg-input').value.trim();
+        var out = $('svg-result');
+        if (!text) { out.innerHTML = '<div class="verdict fail">Paste some SVG markup or load a file first.</div>'; return; }
+        var res = validateSvg(text);
+        var head = res.ok
+          ? '<div class="verdict pass"><strong>Passes the common checks.</strong> Your certificate authority runs the final validation.</div>'
+          : '<div class="verdict fail"><strong>Not compliant yet.</strong> Fix the items marked below.</div>';
+        var cta = res.ok ? '' :
+          '<p class="tool-cta">Want this handled? <a href="/services/bimi-svg-fix">The $49 SVG fix</a> rebuilds it to pass.</p>';
+        out.innerHTML = head + renderList(res.results) + cta;
+      }
+
+      if ($('svg-validate')) {
+        $('svg-validate').addEventListener('click', runSvg);
+        $('svg-clear').addEventListener('click', function () { $('svg-input').value = ''; $('svg-result').innerHTML = ''; });
+        $('svg-file').addEventListener('change', function (e) {
+          var f = e.target.files && e.target.files[0];
+          if (!f) return;
+          var reader = new FileReader();
+          reader.onload = function () { $('svg-input').value = String(reader.result); runSvg(); };
+          reader.readAsText(f);
+        });
+      }
+
+      // ---------- DNS checker ----------
+      function dohTxt(name) {
+        var url = 'https://dns.google/resolve?name=' + encodeURIComponent(name) + '&type=TXT';
+        return fetch(url, { headers: { accept: 'application/dns-json' } })
+          .then(function (r) { if (!r.ok) throw new Error('dns'); return r.json(); })
+          .then(function (j) {
+            return (j.Answer || [])
+              .map(function (a) { return String(a.data || '').replace(/^"|"$/g, '').replace(/"\s*"/g, ''); })
+              .filter(Boolean);
+          })
+          .catch(function () { return []; });
+      }
+      function row(lbl, val, state, stTxt) {
+        return '<div class="dns-row"><span class="lbl">' + lbl + '</span><span class="val">' +
+          esc(val) + '</span><span class="st ' + state + '">' + stTxt + '</span></div>';
+      }
+
+      function runDns() {
+        var raw = $('dns-input').value.trim().toLowerCase()
+          .replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
+        var out = $('dns-result');
+        if (!raw) { out.innerHTML = '<div class="verdict fail">Enter a domain first.</div>'; return; }
+        out.innerHTML = '<div class="verdict">Querying DNS for <strong>' + esc(raw) + '</strong> ...</div>';
+
+        Promise.all([
+          dohTxt('default._bimi.' + raw),
+          dohTxt('_dmarc.' + raw),
+          dohTxt(raw)
+        ]).then(function (r) {
+          var bimiRec = r[0].find(function (t) { return /v=BIMI1/i.test(t); });
+          var dmarcRec = r[1].find(function (t) { return /v=DMARC1/i.test(t); });
+          var spfRec = r[2].find(function (t) { return /v=spf1/i.test(t); });
+
+          var policy = null;
+          if (dmarcRec) { var m = dmarcRec.match(/p\s*=\s*([a-z]+)/i); policy = m ? m[1].toLowerCase() : null; }
+          var enforced = policy === 'quarantine' || policy === 'reject';
+
+          var logoUrl = '', certUrl = '';
+          if (bimiRec) {
+            var ml = bimiRec.match(/l\s*=\s*([^;]+)/i); logoUrl = ml ? ml[1].trim() : '';
+            var ma = bimiRec.match(/a\s*=\s*([^;]+)/i); certUrl = ma ? ma[1].trim() : '';
+          }
+
+          var rows = '';
+          rows += row('SPF', spfRec ? 'v=spf1 found' : 'No SPF record found', spfRec ? 'good' : 'warn', spfRec ? 'found' : 'missing');
+          rows += row('DKIM', 'Selector-specific, not checked', 'warn', 'n/a');
+          rows += row('DMARC',
+            dmarcRec ? ('p=' + (policy || '?')) : 'No DMARC record found',
+            enforced ? 'good' : 'bad',
+            dmarcRec ? (enforced ? 'enforced' : policy || 'found') : 'missing');
+          rows += row('BIMI',
+            bimiRec ? ('l=' + (logoUrl || '?') + (certUrl ? '  a=' + certUrl : '')) : 'No BIMI record found',
+            bimiRec ? 'good' : 'warn',
+            bimiRec ? 'found' : 'missing');
+
+          var verdict, pass = false;
+          if (bimiRec && enforced) { pass = true; verdict = '<strong>Set up correctly.</strong> DMARC is at enforcement and a BIMI record is published. Whether the logo actually shows still depends on a valid SVG and, for Gmail and Apple Mail, a certificate.'; }
+          else if (bimiRec && policy === 'none') { verdict = '<strong>The logo will not display.</strong> A BIMI record exists, but DMARC is at p=none. You must move DMARC to quarantine or reject first.'; }
+          else if (!bimiRec && enforced) { verdict = '<strong>Almost there.</strong> DMARC is at enforcement, so the domain is ready. There is no BIMI record published yet.'; }
+          else if (!dmarcRec) { verdict = '<strong>Not configured.</strong> No DMARC record found. BIMI cannot work without DMARC at enforcement.'; }
+          else { verdict = '<strong>Not set up.</strong> DMARC is not at enforcement and no BIMI record is published.'; }
+
+          var cta = pass ? '' :
+            '<p class="tool-cta">Stuck at p=none? <a href="/services/dmarc-enforcement">The DMARC enforcement project</a> gets you to reject safely.</p>';
+
+          out.innerHTML = '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + verdict + '</div>' +
+            '<div class="dns-grid">' + rows + '</div>' + cta;
+        });
+      }
+
+      if ($('dns-check')) {
+        $('dns-check').addEventListener('click', runDns);
+        $('dns-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') runDns(); });
+      }
+    })();
+  </script>
 </Base>
