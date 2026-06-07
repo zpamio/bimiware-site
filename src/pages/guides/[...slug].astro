@@ -89,3 +89,21 @@ const breadcrumbSchema = {
     </div>
   </article>
 </Base>
+
+<script is:inline define:vars={{ guideId: entry.id, guideTitle: entry.data.title }}>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.posthog?.capture('guide_viewed', {
+      guide_id: guideId,
+      guide_title: guideTitle,
+    });
+
+    document.querySelectorAll('a[href="/start"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.posthog?.capture('guide_start_project_clicked', {
+          guide_id: guideId,
+          guide_title: guideTitle,
+        });
+      });
+    });
+  });
+</script>

@@ -51,3 +51,15 @@ const FORMALOO_EMBED_URL = ''; // TODO: e.g. https://app.formaloo.io/v3/form/xxx
     </div>
   </section>
 </Base>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a[href^="mailto:"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.posthog?.capture('contact_email_clicked', {
+          location: 'start_page',
+        });
+      });
+    });
+  });
+</script>

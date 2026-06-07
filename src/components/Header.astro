@@ -13,3 +13,15 @@ import { SITE } from '../data/site';
     </nav>
   </div>
 </header>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a[href="/services/bimi-svg-fix"].btn').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.posthog?.capture('fix_svg_header_clicked', {
+          location: 'header',
+        });
+      });
+    });
+  });
+</script>
