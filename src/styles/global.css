@@ -15,7 +15,7 @@
 
   --text: #0e1512;
   --text-2: #505b56;
-  --text-3: #8a938e;
+  --text-3: #677069;
 
   --accent: #12c182;        /* vivid emerald: buttons, dots, accents */
   --accent-strong: #0a8f5f; /* darker: legible text and links on white */
@@ -26,9 +26,9 @@
   --danger: #d64541;
   --warn: #b9770e;
 
-  --font-display: 'Bricolage Grotesque', Georgia, serif;
-  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', Georgia, serif;
+  --font-body: 'Hanken Grotesk Variable', 'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
 
   --maxw: 1140px;
   --r: 12px;
