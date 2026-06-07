@@ -206,3 +206,26 @@ default._bimi  IN TXT  (
     </div>
   </section>
 </Base>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a[href^="/services/"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var href = el.getAttribute('href') || '';
+        var slug = href.replace('/services/', '');
+        window.posthog?.capture('service_cta_clicked', {
+          service_slug: slug,
+          location: 'homepage',
+        });
+      });
+    });
+
+    document.querySelectorAll('a[href="/start"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.posthog?.capture('start_project_clicked', {
+          location: 'homepage',
+        });
+      });
+    });
+  });
+</script>

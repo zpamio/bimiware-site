@@ -29,6 +29,7 @@ import 'vanilla-cookieconsent/dist/cookieconsent.css';
         person_profiles: 'identified_only',
         capture_pageview: true,
       });
+      (window as any).posthog = posthog;
     } else {
       posthog.opt_in_capturing();
     }

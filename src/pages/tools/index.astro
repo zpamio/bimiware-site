@@ -213,6 +213,13 @@ const appSchema = {
         var cta = res.ok ? '' :
           '<p class="tool-cta">Want this handled? <a href="/services/bimi-svg-fix">The $49 SVG fix</a> rebuilds it to pass.</p>';
         out.innerHTML = head + renderList(res.results) + cta;
+        var errCount = res.results.filter(function (r) { return r.level === 'err'; }).length;
+        var warnCount = res.results.filter(function (r) { return r.level === 'warn'; }).length;
+        window.posthog?.capture('svg_validated', {
+          passed: res.ok,
+          error_count: errCount,
+          warning_count: warnCount,
+        });
       }
 
       if ($('svg-validate')) {
@@ -291,6 +298,13 @@ const appSchema = {
 
           var cta = pass ? '' :
             '<p class="tool-cta">Stuck at p=none? <a href="/services/dmarc-enforcement">The DMARC enforcement project</a> gets you to reject safely.</p>';
+
+          window.posthog?.capture('dns_checked', {
+            passed: pass,
+            has_bimi_record: !!bimiRec,
+            dmarc_enforced: enforced,
+            has_spf: !!spfRec,
+          });
 
           out.innerHTML = '<div class="verdict ' + (pass ? 'pass' : 'fail') + '">' + verdict + '</div>' +
             '<div class="dns-grid">' + rows + '</div>' + cta;

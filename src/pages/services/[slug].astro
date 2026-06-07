@@ -115,3 +115,34 @@ const breadcrumbSchema = {
     </div>
   </section>
 </Base>
+
+<script is:inline define:vars={{ serviceSlug: service.slug, serviceName: service.name, serviceTier: service.tier, servicePrice: service.price, serviceRecurring: service.recurring ?? false }}>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.posthog?.capture('service_page_viewed', {
+      service_slug: serviceSlug,
+      service_name: serviceName,
+      service_tier: serviceTier,
+      service_price: servicePrice,
+    });
+
+    document.querySelectorAll('a[href*="stripe.com"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        window.posthog?.capture('service_purchase_clicked', {
+          service_slug: serviceSlug,
+          service_name: serviceName,
+          service_price: servicePrice,
+          service_recurring: serviceRecurring,
+        });
+      });
+    });
+
+    document.querySelectorAll('a[href="/start"]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        window.posthog?.capture('start_project_clicked', {
+          location: 'service_page',
+          service_slug: serviceSlug,
+        });
+      });
+    });
+  });
+</script>
