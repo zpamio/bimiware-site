@@ -6,4 +6,8 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://bimiware.com',
   integrations: [sitemap()],
+  // Inline the CSS into each page so it is not a separate render-blocking
+  // request. The stylesheet is small, so this trades a little repeated
+  // markup for a faster first paint.
+  build: { inlineStylesheets: 'always' },
 });
