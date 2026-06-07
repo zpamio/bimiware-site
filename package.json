@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "12",
     "@astrojs/sitemap": "^3.2.1",
     "@fontsource-variable/bricolage-grotesque": "^5.2.10",
     "@fontsource-variable/hanken-grotesk": "^5.2.8",
@@ -16,5 +19,8 @@
     "astro": "^5.6.0",
     "posthog-js": "^1.382.0",
     "vanilla-cookieconsent": "^3.1.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.98.0"
   }
 }
