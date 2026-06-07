@@ -2,6 +2,7 @@
 import { SITE } from '../data/site';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Analytics from '../components/Analytics.astro';
 import '@fontsource-variable/bricolage-grotesque';
 import '@fontsource-variable/hanken-grotesk';
 import '@fontsource-variable/jetbrains-mono';
@@ -85,6 +86,7 @@ const siteSchema = {
       <slot />
     </main>
     <Footer />
+    <Analytics />
     <script is:inline>
       (function () {
         var els = document.querySelectorAll('.reveal');
